@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Common;
+using System.Data.OleDb;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using trackrForms.trackrDBDataSetTableAdapters;
 
 namespace trackrForms
 {
@@ -24,56 +27,64 @@ namespace trackrForms
 
         private void comboBox1_SelectedValueChanged(object sender, EventArgs e)
         {
-            if (comboBox1.SelectedItem.ToString() == "Numerical")
+            if (typeNameComboBox.SelectedItem.ToString() == "Numerical")
             {
-                label3.Visible = true;
-                comboBox2.Visible = true;
-                label4.Visible = true;
-                numericUpDown1.Visible = true;
-                label5.Visible = false;
+                pos_negLabel.Visible = true;
+                pos_negComboBox.Visible = true;
+                thresholdLabel.Visible = true;
+                thresholdNumericUpDown.Visible = true;
+                more_lessLabel.Visible = false;
             }
             else
             {
-                label3.Visible = false;
-                comboBox2.Visible = false;
-                label4.Visible = false;
-                numericUpDown1.Visible = false;
-                label5.Visible = false;
+                pos_negLabel.Visible = false;
+                pos_negComboBox.Visible = false;
+                thresholdLabel.Visible = false;
+                thresholdNumericUpDown.Visible = false;
+                more_lessLabel.Visible = false;
             }
-        }
-
-        private void comboBox1_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            Close();
         }
 
         private void comboBox2_SelectedValueChanged(object sender, EventArgs e)
         {
-            if (comboBox2.SelectedItem.ToString() == "Positive")
+            if (pos_negComboBox.SelectedItem.ToString() == "Positive")
             {
-                label5.Text = "or more";
-                label5.Visible = true;
+                more_lessLabel.Text = "or more";
+                more_lessLabel.Visible = true;
             }
-            else if (comboBox2.SelectedItem.ToString() == "Negative")
+            else if (pos_negComboBox.SelectedItem.ToString() == "Negative")
             {
-                label5.Text = "or less";
-                label5.Visible = true;
+                more_lessLabel.Text = "or less";
+                more_lessLabel.Visible = true;
             }
             else
             {
-                label5.Visible = false;
+                more_lessLabel.Visible = false;
             }
             
         }
 
-        private void checkBox7_CheckedChanged(object sender, EventArgs e)
+        private void createHabitButton_Click(object sender, EventArgs e)
         {
+            //  Create table both to test and retrieve largest ID value for insertion into the table.
+            trackrDBDataSet.habitTableDataTable newTable = new trackrDBDataSet.habitTableDataTable();
+            habitTableTableAdapter.Fill(newTable);
 
+            //  Insert value based on the user input
+            habitTableTableAdapter.Insert(Int32.Parse(newTable.Rows[newTable.Rows.Count - 1].ItemArray[0].ToString())+1,
+                habitNameTextBox.Text, typeNameComboBox.Text, Int32.Parse(thresholdNumericUpDown.Value.ToString()),
+                pos_negComboBox.Text == "Positive", true, 0);
+
+            //  Greater than 0 means that successful updates have occurred. This is 0 so I'm guessing no updates succeeded, however, the output
+            //      db changed successfully.
+            MessageBox.Show(habitTableTableAdapter.Update(trackrDBDataSet1).ToString());
+
+            //  Fill table again to show more proof that the table was locally updated, as according to the program (Shows RowsCount, ID of newest row)
+            habitTableTableAdapter.Fill(newTable);
+            MessageBox.Show(newTable.Rows.Count.ToString() + " " + newTable.Rows[2].ItemArray[0]);
+
+            //  Close form
+            Close();
         }
     }
 }
